@@ -40,5 +40,5 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  postgres-data:
+  postgres_data:
   rabbitmq_data:
