@@ -152,3 +152,57 @@ def get_user_tasks_history(session: Session, user_id: int) -> list[MLTask]:
             .order_by(MLTask.created_at.desc())
         ).all()
     )
+
+
+def get_model_by_code(session: Session, model_code: str) -> MLModel | None:
+    return session.scalar(
+        select(MLModel).where(MLModel.model_id == model_code)
+    )
+
+
+def submit_prediction(session: Session, user_id: int, model_code: str, data: str) -> MLTask:
+    if not data or not data.strip():
+        raise ValueError("Данные для предсказания не могут быть пустыми")
+
+    user = session.get(User, user_id)
+    if user is None:
+        raise ValueError("Пользователь не найден")
+
+    model = get_model_by_code(session, model_code)
+    if model is None:
+        raise ValueError("ML-модель не найдена")
+
+    if user.balance < model.prediction_price:
+        raise ValueError("Недостаточно средств на балансе")
+
+    try:
+        task = MLTask(
+            user_id=user.id,
+            model_id=model.id,
+            data=data,
+            status=TaskStatus.PROCESSING,
+        )
+        session.add(task)
+
+        session.flush()
+
+        transaction = Transaction(
+            user_id=user.id,
+            task_id=task.id,
+            amount=model.prediction_price,
+            transaction_type=TransactionType.DEBIT,
+        )
+        session.add(transaction)
+
+        user.balance -= model.prediction_price
+
+        task.result = f"demo_prediction_for:{data}"
+        task.status = TaskStatus.COMPLETED
+
+        session.commit()
+        session.refresh(task)
+        return task
+
+    except Exception:
+        session.rollback()
+        raise
