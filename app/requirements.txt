@@ -1,3 +1,7 @@
 Flask
 SQLAlchemy
 psycopg[binary]
+fastapi
+uvicorn
+fastapi
+uvicorn

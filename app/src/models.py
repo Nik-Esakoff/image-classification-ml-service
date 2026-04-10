@@ -39,7 +39,8 @@ class User(Base):
     balance: Mapped[int] = mapped_column(default=100, nullable=False)
 
     tasks: Mapped[list["MLTask"]] = relationship(back_populates="user")
-    transactions: Mapped[list["Transaction"]] = relationship(back_populates="user")
+    transactions: Mapped[list["Transaction"]
+                         ] = relationship(back_populates="user")
 
 
 class MLTask(Base):
@@ -49,8 +50,10 @@ class MLTask(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    model_id: Mapped[int] = mapped_column(ForeignKey("ml_models.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), nullable=False)
+    model_id: Mapped[int] = mapped_column(
+        ForeignKey("ml_models.id"), nullable=False)
 
     data: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[TaskStatus] = mapped_column(
@@ -66,7 +69,9 @@ class MLTask(Base):
 
     user: Mapped["User"] = relationship(back_populates="tasks")
     model: Mapped["MLModel"] = relationship(back_populates="tasks")
-    transactions: Mapped[list["Transaction"]] = relationship(back_populates="task")
+    transactions: Mapped[list["Transaction"]
+                         ] = relationship(back_populates="task")
+
 
 class Transaction(Base):
     """ORM-модель транзакции"""
@@ -74,10 +79,13 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    task_id: Mapped[int | None] = mapped_column(ForeignKey("ml_tasks.id"), nullable=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), nullable=False)
+    task_id: Mapped[int | None] = mapped_column(
+        ForeignKey("ml_tasks.id"), nullable=True)
     amount: Mapped[int] = mapped_column(nullable=False)
-    transaction_type: Mapped[TransactionType] = mapped_column(SqlEnum(TransactionType), nullable=False)
+    transaction_type: Mapped[TransactionType] = mapped_column(
+        SqlEnum(TransactionType), nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.now,
         nullable=False,
@@ -93,7 +101,8 @@ class MLModel(Base):
     __tablename__ = "ml_models"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    model_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    model_id: Mapped[str] = mapped_column(
+        String(100), unique=True, nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=False)
     prediction_price: Mapped[int] = mapped_column(nullable=False)
 
