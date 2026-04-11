@@ -62,3 +62,9 @@ class PredictResponse(BaseModel):
     status: TaskStatus
     created_at: datetime
     result: str | None
+
+
+class PredictAcceptedResponse(BaseModel):
+    task_id: int
+    status: TaskStatus
+    message: str
