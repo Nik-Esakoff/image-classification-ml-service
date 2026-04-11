@@ -2,6 +2,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from models import MLModel, MLTask, TaskStatus, Transaction, TransactionType, User, UserRole
+from datetime import datetime
+
+from broker import publish_prediction_task
 
 
 def create_user(
@@ -206,3 +209,86 @@ def submit_prediction(session: Session, user_id: int, model_code: str, data: str
     except Exception:
         session.rollback()
         raise
+
+
+def enqueue_prediction(session: Session, user_id: int, model_code: str, data: str) -> MLTask:
+    if not data or not data.strip():
+        raise ValueError("Данные для предсказания не могут быть пустыми")
+
+    user = session.get(User, user_id)
+    if user is None:
+        raise ValueError("Пользователь не найден")
+
+    model = get_model_by_code(session, model_code)
+    if model is None:
+        raise ValueError("ML-модель не найдена")
+
+    price = model.prediction_price
+    if user.balance < price:
+        raise ValueError("Недостаточно средств на балансе")
+
+    try:
+        task = MLTask(
+            user_id=user.id,
+            model_id=model.id,
+            data=data,
+            status=TaskStatus.CREATED,
+        )
+        session.add(task)
+        session.flush()
+
+        transaction = Transaction(
+            user_id=user.id,
+            task_id=task.id,
+            amount=price,
+            transaction_type=TransactionType.DEBIT,
+        )
+        session.add(transaction)
+
+        user.balance -= price
+
+        session.commit()
+        session.refresh(task)
+
+    except Exception:
+        session.rollback()
+        raise
+
+    try:
+        message = {
+            "task_id": task.id,
+            "user_id": user.id,
+            "model": model.model_id,
+            "data": data,
+            "timestamp": datetime.now().isoformat(),
+        }
+        publish_prediction_task(message)
+        return task
+
+    except Exception as exc:
+        try:
+            failed_task = session.get(MLTask, task.id)
+            failed_user = session.get(User, user.id)
+
+            if failed_task is not None:
+                failed_task.status = TaskStatus.FAILED
+                failed_task.result = "Queue publish error"
+
+            if failed_user is not None:
+                failed_user.balance += price
+                session.add(
+                    Transaction(
+                        user_id=failed_user.id,
+                        task_id=task.id,
+                        amount=price,
+                        transaction_type=TransactionType.CREDIT,
+                    )
+                )
+
+            session.commit()
+
+        except Exception:
+            session.rollback()
+
+        raise RuntimeError(
+            "Не удалось отправить задачу в очередь RabbitMQ") from exc

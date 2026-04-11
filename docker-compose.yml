@@ -28,6 +28,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: on-failure
@@ -40,6 +43,16 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  worker:
+    build: ./app
+    command: python src/worker.py
+    depends_on:
+      - rabbitmq
+      - database
+    env_file:
+      - .env
+    restart: on-failure
 
 volumes:
   postgres_data:
