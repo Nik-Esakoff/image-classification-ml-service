@@ -53,6 +53,7 @@ services:
     env_file:
       - .env
     restart: on-failure
+    scale: 2
 
 volumes:
   postgres_data:
