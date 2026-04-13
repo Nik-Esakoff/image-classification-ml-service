@@ -157,6 +157,20 @@ def get_user_tasks_history(session: Session, user_id: int) -> list[MLTask]:
     )
 
 
+def get_task_by_id(session: Session, task_id: int, user_id: int) -> MLTask:
+    """Возвращает ML-задачу по id"""
+    task = session.scalar(
+        select(MLTask)
+        .where(MLTask.id == task_id)
+    )
+    if task is None:
+        raise ValueError("ML-задача не найдена")
+    if task.user_id != user_id:
+        raise ValueError("Эта задача не пренадлежит текущему пользователю")
+
+    return task
+
+
 def get_model_by_code(session: Session, model_code: str) -> MLModel | None:
     return session.scalar(
         select(MLModel).where(MLModel.model_id == model_code)

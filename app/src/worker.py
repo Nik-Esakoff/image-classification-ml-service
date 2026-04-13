@@ -4,8 +4,7 @@ import os
 import pika
 
 from db import SessionLocal
-from models import MLTask, TaskStatus
-
+from models import MLModel, MLTask, TaskStatus, Transaction, TransactionType, User
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
@@ -37,6 +36,12 @@ def process_task(ch, method, properties, body):
         if task is None:
             raise ValueError(f"MLTask с id={task_id} не найдена")
 
+        model = session.get(MLModel, task.model_id)
+        if model is None:
+            raise ValueError("ML-модель не найдена")
+
+        price = model.prediction_price
+
         task.status = TaskStatus.PROCESSING
         session.commit()
 
@@ -54,11 +59,34 @@ def process_task(ch, method, properties, body):
 
         try:
             if task_id is not None:
+
                 failed_task = session.get(MLTask, task_id)
-                if failed_task is not None:
+                if failed_task is not None and failed_task.status != TaskStatus.COMPLETED:
+
                     failed_task.status = TaskStatus.FAILED
                     failed_task.result = f"Worker error: {exc}"
+
+                    if price is None:
+                        failed_model = session.get(
+                            MLModel, failed_task.model_id)
+                        if failed_model is not None:
+                            price = failed_model.prediction_price
+
+                    if price is not None:
+                        failed_user = session.get(User, task.user_id)
+
+                        if failed_user is not None:
+                            failed_user.balance += price
+                            session.add(
+                                Transaction(
+                                    user_id=failed_user.id,
+                                    task_id=task.id,
+                                    amount=price,
+                                    transaction_type=TransactionType.CREDIT,
+                                )
+                            )
                     session.commit()
+
         except Exception:
             session.rollback()
 
