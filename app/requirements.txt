@@ -6,3 +6,6 @@ uvicorn
 fastapi
 uvicorn
 pika
+jinja2
+python-multipart
+zoneinfo

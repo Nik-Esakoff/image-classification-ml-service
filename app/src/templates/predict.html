@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>ML-предсказание</h2>
+
+    {% if error %}
+        <p class="error-message">{{ error }}</p>
+    {% endif %}
+
+    {% if success %}
+        <p class="success-message">{{ success }}</p>
+    {% endif %}
+
+    <form method="post" action="/predict-ui" enctype="multipart/form-data">
+        <label for="model_code">Модель</label>
+            <select id="model_code" name="model_code" required>
+                <option value="" disabled selected>Выберите модель</option>
+                {% for model in models %}
+                    <option value="{{ model.model_id }}">
+                        {{ model.model_id }} — {{ model.description }} ({{ model.prediction_price }})
+                    </option>
+                {% endfor %}
+            </select>
+
+        <label for="file">Изображение</label>
+        <input type="file" id="file" name="file" accept="image/*" required>
+
+        <button type="submit">Отправить</button>
+    </form>
+</div>
+
+{% if task_id %}
+<div class="card">
+    <h3>Информация по задаче</h3>
+    <p><strong>Task ID:</strong> {{ task_id }}</p>
+
+    {% if task_message %}
+        <p><strong>Сообщение:</strong> {{ task_message }}</p>
+    {% endif %}
+
+    {% if task_status %}
+        <p><strong>Статус:</strong> {{ task_status }}</p>
+    {% endif %}
+
+    {% if task_result %}
+        <p><strong>Результат:</strong> {{ task_result }}</p>
+    {% endif %}
+
+    {% if task_created_at %}
+        <p><strong>Создана:</strong> {{ task_created_at }}</p>
+    {% endif %}
+
+    <div class="actions">
+        <a class="button" href="/predict/{{ task_id }}">Обновить статус</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

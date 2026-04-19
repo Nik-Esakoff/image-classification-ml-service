@@ -306,3 +306,11 @@ def enqueue_prediction(session: Session, user_id: int, model_code: str, data: st
 
         raise RuntimeError(
             "Не удалось отправить задачу в очередь RabbitMQ") from exc
+
+
+def get_available_models(session: Session) -> list[MLModel]:
+    return list(
+        session.scalars(
+            select(MLModel).order_by(MLModel.model_id.asc())
+        ).all()
+    )

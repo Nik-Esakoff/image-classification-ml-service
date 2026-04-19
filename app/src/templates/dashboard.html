@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Личный кабинет</h2>
+
+    {% if error %}
+        <p class="error-message">{{ error }}</p>
+    {% endif %}
+
+    {% if success %}
+        <p class="success-message">{{ success }}</p>
+    {% endif %}
+
+    <p><strong>Логин:</strong> {{ user.login }}</p>
+    <p><strong>Роль:</strong> {{ user.role }}</p>
+    <p><strong>Баланс:</strong> {{ user.balance }}</p>
+
+    <hr>
+
+    <h3>Пополнение баланса</h3>
+    <form method="post" action="/dashboard/deposit">
+        <label for="amount">Сумма</label>
+        <input type="number" step="1" min="1" id="amount" name="amount" required>
+        <button type="submit">Пополнить</button>
+    </form>
+
+    <div class="actions">
+        <a class="button" href="/predict">Сделать предсказание</a>
+        <a class="button secondary" href="/history">История</a>
+        <a class="button secondary" href="/logout">Выйти</a>
+    </div>
+</div>
+{% endblock %}
