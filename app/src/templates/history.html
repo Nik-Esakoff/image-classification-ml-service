@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>История задач</h2>
+
+    {% if tasks %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Дата</th>
+                    <th>Статус</th>
+                    <th>Результат</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.id }}</td>
+                        <td>{{ task.created_at.strftime("%d.%m.%Y %H:%M:%S") }}</td>
+                        <td>{{ task.status }}</td>
+                        <td>{{ task.result or "-" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Задач пока нет.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>История транзакций</h2>
+
+    {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Дата</th>
+                    <th>Тип</th>
+                    <th>Сумма</th>
+                    <th>Task ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.id }}</td>
+                        <td>{{ tx.created_at.strftime("%d.%m.%Y %H:%M:%S") }}</td>
+                        <td>{{ tx.transaction_type }}</td>
+                        <td>{{ tx.amount }}</td>
+                        <td>{{ tx.task_id or "-" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Транзакций пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

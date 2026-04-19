@@ -1,5 +1,6 @@
-import datetime
+from datetime import datetime
 from enum import Enum
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import Enum as SqlEnum, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -61,8 +62,8 @@ class MLTask(Base):
         default=TaskStatus.CREATED,
         nullable=False,
     )
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        default=datetime.datetime.now,
+    created_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(ZoneInfo("Europe/Moscow")),
         nullable=False,
     )
     result: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -86,8 +87,8 @@ class Transaction(Base):
     amount: Mapped[int] = mapped_column(nullable=False)
     transaction_type: Mapped[TransactionType] = mapped_column(
         SqlEnum(TransactionType), nullable=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        default=datetime.datetime.now,
+    created_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(ZoneInfo("Europe/Moscow")),
         nullable=False,
     )
 

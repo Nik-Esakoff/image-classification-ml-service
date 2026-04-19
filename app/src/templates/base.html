@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title or "ML Service" }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="logo">ML Service</h1>
+            <nav class="nav">
+                <a href="/">Главная</a>
+
+                {% if request.session.get("user_id") %}
+                    <a href="/dashboard">Кабинет</a>
+                    <a href="/predict">Predict</a>
+                    <a href="/history">История</a>
+                    <a href="/logout">Выйти</a>
+                {% else %}
+                    <a href="/login">Войти</a>
+                    <a href="/register">Регистрация</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
