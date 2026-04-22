@@ -9,3 +9,5 @@ rabbitmq-data/
 __pycache__/
 *.pyc
 .DS_Storecookies.txt
+.DS_Store
+cookies.txt
