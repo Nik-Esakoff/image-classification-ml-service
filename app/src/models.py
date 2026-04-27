@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import Enum as SqlEnum, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from sqlalchemy import Text
 from db import Base
 
 
@@ -66,7 +66,7 @@ class MLTask(Base):
         default=lambda: datetime.now(ZoneInfo("Europe/Moscow")),
         nullable=False,
     )
-    result: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    result: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="tasks")
     model: Mapped["MLModel"] = relationship(back_populates="tasks")

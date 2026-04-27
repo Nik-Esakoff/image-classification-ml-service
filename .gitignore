@@ -11,3 +11,8 @@ __pycache__/
 .DS_Storecookies.txt
 .DS_Store
 cookies.txt
+
+app/uploads/*
+!app/uploads/.gitkeep
+
+app/models/tiny_imagenet_resnet/*.pth

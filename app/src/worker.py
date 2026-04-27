@@ -6,6 +6,8 @@ import pika
 from db import SessionLocal
 from models import MLModel, MLTask, TaskStatus, Transaction, TransactionType, User
 
+from ml.inference import predict_image
+
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "ml_user")
@@ -45,7 +47,12 @@ def process_task(ch, method, properties, body):
         task.status = TaskStatus.PROCESSING
         session.commit()
 
-        prediction_result = make_demo_prediction(data)
+        prediction = predict_image(data)
+
+        prediction_result = json.dumps(
+            prediction,
+            ensure_ascii=False,
+        )
 
         task.result = prediction_result
         task.status = TaskStatus.COMPLETED

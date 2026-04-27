@@ -9,3 +9,8 @@ jinja2
 python-multipart
 pytest
 requests
+
+torch
+torchvision
+pillow
+python-multipart
