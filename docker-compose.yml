@@ -6,7 +6,8 @@ services:
     env_file:
       - ./app/.env
     volumes:
-      - ./app:/app
+      - ./app/uploads:/app/uploads
+      - ./app/models:/app/models
     depends_on:
       - database
       - rabbitmq
@@ -54,6 +55,9 @@ services:
       - .env
     restart: on-failure
     scale: 2
+    volumes:
+      - ./app/uploads:/app/uploads
+      - ./app/models:/app/models
 
 volumes:
   postgres_data:

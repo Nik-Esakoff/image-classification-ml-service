@@ -6,6 +6,7 @@ from services import get_user_by_id, deposit_balance
 from services import get_user_tasks_history, get_user_transactions_history, get_available_models
 from services import enqueue_prediction, get_task_by_id
 from fastapi import UploadFile, File
+from storage import save_upload_file
 
 from dependencies import get_db
 from models import User
@@ -238,8 +239,8 @@ def predict_submit(
         return RedirectResponse(url="/login", status_code=303)
 
     try:
-        result = enqueue_prediction(db, user.id, model_code, file.filename)
-
+        image_path = save_upload_file(file)
+        result = enqueue_prediction(db, user.id, model_code, image_path)
         return templates.TemplateResponse(
             request=request,
             name="predict.html",
@@ -247,6 +248,7 @@ def predict_submit(
                 "request": request,
                 "page_title": "Предсказание",
                 "user": get_user_by_id(db, user.id),
+                "models": get_available_models(db),
                 "success": "Задача успешно отправлена",
                 "task_id": result.id,
                 "task_status": result.status,
@@ -261,6 +263,7 @@ def predict_submit(
                 "request": request,
                 "page_title": "Предсказание",
                 "user": user,
+                "models": get_available_models(db),
                 "error": str(e),
             },
         )
