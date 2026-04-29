@@ -7,6 +7,7 @@ from services import get_user_tasks_history, get_user_transactions_history, get_
 from services import enqueue_prediction, get_task_by_id
 from fastapi import UploadFile, File
 from storage import save_upload_file
+import json
 
 from dependencies import get_db
 from models import User
@@ -122,6 +123,16 @@ def get_current_web_user(request: Request, db: Session) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 
+def parse_prediction_result(result: str | None):
+    if not result:
+        return None
+
+    try:
+        return json.loads(result)
+    except json.JSONDecodeError:
+        return None
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard_page(
     request: Request,
@@ -191,6 +202,19 @@ def history_page(
     tasks = get_user_tasks_history(db, user.id)
     transactions = get_user_transactions_history(db, user.id)
 
+    tasks_view = []
+
+    for task in tasks:
+        tasks_view.append(
+            {
+                "id": task.id,
+                "created_at": task.created_at,
+                "status": task.status,
+                "result": task.result,
+                "result_json": parse_prediction_result(task.result),
+            }
+        )
+
     return templates.TemplateResponse(
         request=request,
         name="history.html",
@@ -198,7 +222,7 @@ def history_page(
             "request": request,
             "page_title": "История",
             "user": user,
-            "tasks": tasks,
+            "tasks": tasks_view,
             "transactions": transactions,
         },
     )
@@ -303,6 +327,7 @@ def predict_status_page(
                 "task_id": task.id,
                 "task_status": task.status,
                 "task_result": task.result,
+                "task_result_json": parse_prediction_result(task.result),
                 "task_created_at": task.created_at,
             },
         )

@@ -15,4 +15,9 @@ cookies.txt
 app/uploads/*
 !app/uploads/.gitkeep
 
+# Model checkpoints
 app/models/tiny_imagenet_resnet/*.pth
+!app/models/tiny_imagenet_resnet/.gitkeep
+
+# Model metadata
+!app/models/tiny_imagenet_resnet/idx_to_label.json

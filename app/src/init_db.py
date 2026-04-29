@@ -42,15 +42,15 @@ def seed_models(session):
     """Добавляет базовые ML-модели, если их ещё нет."""
     base_models = [
         {
-            "model_id": "resnet18",
-            "description": "Demo ResNet18 image classifier",
+            "model_id": "TinyImageResNet",
+            "description": "ResNet18 image classifier",
             "prediction_price": 10,
         },
-        {
-            "model_id": "mobilenet_v2",
-            "description": "Demo MobileNetV2 image classifier",
-            "prediction_price": 8,
-        },
+        # {
+        #     "model_id": "mobilenet_v2",
+        #     "description": "Demo MobileNetV2 image classifier",
+        #     "prediction_price": 8,
+        # },
     ]
 
     for model_data in base_models:
