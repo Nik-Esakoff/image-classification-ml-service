@@ -1,3 +1,5 @@
+import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -8,11 +10,38 @@ from torchvision import transforms
 from ml.tiny_imagenet_resnet import ImageNetNN
 
 
-MODEL_PATH = Path("models/tiny_imagenet_resnet/checkpoint.pth")
+MODEL_DIR = Path("models/tiny_imagenet_resnet")
+MODEL_PATH = MODEL_DIR / "checkpoint.pth"
+IDX_TO_LABEL_PATH = MODEL_DIR / "idx_to_label.json"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 _model = None
+
+
+@lru_cache(maxsize=1)
+def load_idx_to_label() -> dict[int, str]:
+    if not IDX_TO_LABEL_PATH.exists():
+        return {}
+
+    data = json.loads(IDX_TO_LABEL_PATH.read_text(encoding="utf-8"))
+
+    return {
+        int(index): label
+        for index, label in data.items()
+    }
+
+
+def format_prediction_item(class_index: int, probability: float) -> dict[str, Any]:
+    idx_to_label = load_idx_to_label()
+    label = idx_to_label.get(class_index, str(class_index))
+
+    return {
+        "class_index": class_index,
+        "class_name": label,
+        "label": label,
+        "probability": round(float(probability), 6),
+    }
 
 
 def load_model_once():
@@ -61,14 +90,13 @@ def predict_image(image_path: str, top_k: int = 5) -> dict[str, Any]:
     predictions = []
 
     for prob, idx in zip(values[0].cpu().tolist(), indices[0].cpu().tolist()):
-        idx = int(idx)
+        class_index = int(idx)
 
         predictions.append(
-            {
-                "class_index": idx,
-                "class_name": str(idx),
-                "probability": round(float(prob), 6),
-            }
+            format_prediction_item(
+                class_index=class_index,
+                probability=float(prob),
+            )
         )
 
     return {

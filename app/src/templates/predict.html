@@ -43,7 +43,37 @@
         <p><strong>Статус:</strong> {{ task_status }}</p>
     {% endif %}
 
-    {% if task_result %}
+    {% if task_result_json and task_result_json.top1 %}
+        <div>
+            <p>
+                <strong>Результат:</strong>
+                {{ task_result_json.top1.label or task_result_json.top1.class_name }}
+            </p>
+
+            <p>
+                <strong>Confidence:</strong>
+                {{ "%.2f"|format(task_result_json.top1.probability * 100) }}%
+            </p>
+
+            {% if task_result_json.top_k %}
+                <details open>
+                    <summary>Top-5 predictions</summary>
+                    <ol>
+                        {% for item in task_result_json.top_k %}
+                            <li>
+                                {{ item.label or item.class_name }}
+                                —
+                                {{ "%.2f"|format(item.probability * 100) }}%
+                                <small>
+                                    class #{{ item.class_index }}
+                                </small>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </details>
+            {% endif %}
+        </div>
+    {% elif task_result %}
         <p><strong>Результат:</strong> {{ task_result }}</p>
     {% endif %}
 

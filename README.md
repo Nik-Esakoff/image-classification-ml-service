@@ -82,6 +82,7 @@ image-classification-ml-service/
 │   ├── models/
 │   │   └── tiny_imagenet_resnet/
 │   │       ├── .gitkeep
+│   │       ├── idx_to_label.json       # Tiny ImageNet class labels, committed
 │   │       └── checkpoint.pth          # local model artifact, not committed
 │   ├── uploads/
 │   │   └── .gitkeep                    # uploaded images, not committed
@@ -144,7 +145,9 @@ image-classification-ml-service/
 * Sending task IDs to RabbitMQ
 * Processing tasks in a background worker
 * Running PyTorch inference
+* Converting class indices to Tiny ImageNet labels with `idx_to_label.json`
 * Saving top-k prediction results in the database
+* Rendering top-1 and top-5 predictions in the web UI
 
 ### Web Interface
 
@@ -274,20 +277,29 @@ Example result:
 ```json
 {
   "top1": {
-    "class_index": 28,
-    "class_name": "28",
-    "probability": 0.989805
+    "class_index": 134,
+    "class_name": "school_bus",
+    "label": "school_bus",
+    "probability": 0.99658
   },
   "top_k": [
     {
-      "class_index": 28,
-      "class_name": "28",
-      "probability": 0.989805
+      "class_index": 134,
+      "class_name": "school_bus",
+      "label": "school_bus",
+      "probability": 0.99658
     },
     {
-      "class_index": 29,
-      "class_name": "29",
-      "probability": 0.005344
+      "class_index": 155,
+      "class_name": "trolleybus",
+      "label": "trolleybus",
+      "probability": 0.001519
+    },
+    {
+      "class_index": 113,
+      "class_name": "minivan",
+      "label": "minivan",
+      "probability": 0.000658
     }
   ]
 }
@@ -303,6 +315,12 @@ The PyTorch checkpoint is expected at:
 
 ```text
 app/models/tiny_imagenet_resnet/checkpoint.pth
+```
+
+The class label mapping is expected at:
+
+```text
+app/models/tiny_imagenet_resnet/idx_to_label.json
 ```
 
 The checkpoint file is not committed to GitHub. It should be added locally before running inference.
@@ -588,6 +606,20 @@ print(result)
 PY'
 ```
 
+The output should contain readable labels:
+
+```python
+{
+    "top1": {
+        "class_index": 134,
+        "class_name": "school_bus",
+        "label": "school_bus",
+        "probability": 0.99658,
+    },
+    "top_k": [...]
+}
+```
+
 ---
 
 ## Development Notes
@@ -622,7 +654,5 @@ Prediction results can be longer than 100 characters, so the `MLTask.result` fie
 
 * Passwords are currently handled in a simple way and should be replaced with proper password hashing before production use.
 * The model checkpoint is stored locally and is not downloaded automatically.
-* Class names are currently numeric unless Tiny ImageNet class mapping is added.
 * There are no Alembic migrations yet.
-* The UI currently displays prediction results as raw JSON.
 * The project is intended as an educational ML service prototype, not a production-ready system.

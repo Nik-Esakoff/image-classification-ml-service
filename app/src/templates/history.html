@@ -20,7 +20,40 @@
                         <td>{{ task.id }}</td>
                         <td>{{ task.created_at.strftime("%d.%m.%Y %H:%M:%S") }}</td>
                         <td>{{ task.status }}</td>
-                        <td>{{ task.result or "-" }}</td>
+                        <td>
+                            {% if task.result_json and task.result_json.top1 %}
+                                <strong>
+                                    {{ task.result_json.top1.label or task.result_json.top1.class_name }}
+                                </strong>
+                                <br>
+                                <small>
+                                    confidence:
+                                    {{ "%.2f"|format(task.result_json.top1.probability * 100) }}%
+                                </small>
+
+                                {% if task.result_json.top_k %}
+                                    <details>
+                                        <summary>Top-5</summary>
+                                        <ol>
+                                            {% for item in task.result_json.top_k %}
+                                                <li>
+                                                    {{ item.label or item.class_name }}
+                                                    —
+                                                    {{ "%.2f"|format(item.probability * 100) }}%
+                                                    <small>
+                                                        class #{{ item.class_index }}
+                                                    </small>
+                                                </li>
+                                            {% endfor %}
+                                        </ol>
+                                    </details>
+                                {% endif %}
+                            {% elif task.result %}
+                                {{ task.result }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
